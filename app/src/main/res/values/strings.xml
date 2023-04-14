@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AndroidFaceDetection</string>
+    <string name="open_camera">Buka Kamera</string>
+    <string name="take_photo">Ambil Gambar</string>
+</resources>
