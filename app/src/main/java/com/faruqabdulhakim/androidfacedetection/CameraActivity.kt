@@ -3,7 +3,6 @@ package com.faruqabdulhakim.androidfacedetection
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Surface
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
@@ -13,7 +12,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import com.faruqabdulhakim.androidfacedetection.databinding.ActivityCameraBinding
 import java.io.File
 import java.text.SimpleDateFormat
@@ -22,6 +20,7 @@ import java.util.*
 class CameraActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCameraBinding
     private lateinit var overlay: Overlay
+    private lateinit var faceAnalyzer: FaceAnalyzer
     private var imageCapture: ImageCapture? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,8 +37,20 @@ class CameraActivity : AppCompatActivity() {
         )
         addContentView(overlay, layoutOverlay)
 
+        faceAnalyzer = FaceAnalyzer(lifecycle, overlay)
+        faceAnalyzer.faceDetected.observe(this@CameraActivity) {faceDetected ->
+            binding.btnTakePhoto.isEnabled = faceDetected == 1
+            if (faceDetected == 0) {
+                binding.tvMsg.text = "Tidak ada wajah terdeteksi"
+            } else if (faceDetected == 1) {
+                binding.tvMsg.text = "Wajah terdeteksi"
+            } else if (faceDetected > 1) {
+                binding.tvMsg.text = "Terlalu banyak wajah yang terdeteksi"
+            }
+        }
 
         startCamera()
+
         binding.btnTakePhoto.setOnClickListener { takePhoto() }
     }
 
@@ -54,7 +65,7 @@ class CameraActivity : AppCompatActivity() {
 
             val imageAnalysis = ImageAnalysis.Builder().build()
             imageAnalysis.setAnalyzer(
-                ContextCompat.getMainExecutor(this@CameraActivity), FaceAnalyzer(lifecycle, overlay)
+                ContextCompat.getMainExecutor(this@CameraActivity), faceAnalyzer
             )
 
             imageCapture = ImageCapture.Builder().build()

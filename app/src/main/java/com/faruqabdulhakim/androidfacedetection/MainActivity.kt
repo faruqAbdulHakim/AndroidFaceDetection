@@ -10,6 +10,8 @@ import com.faruqabdulhakim.androidfacedetection.databinding.ActivityMainBinding
 import java.io.File
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -28,7 +30,12 @@ class MainActivity : AppCompatActivity() {
             } as? File
 
             photoFile?.let {
-                binding.imageView.setImageBitmap(BitmapFactory.decodeFile(photoFile.path))
+                val bitmap = BitmapFactory.decodeFile(photoFile.path)
+                val matrix = Matrix().apply {
+                    postScale(-1F, 1F, bitmap.width / 2F, bitmap.height / 2F)
+                }
+                val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                binding.imageView.setImageBitmap(flippedBitmap)
             }
         }
     }

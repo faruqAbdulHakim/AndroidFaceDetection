@@ -1,12 +1,13 @@
 package com.faruqabdulhakim.androidfacedetection
 
-import android.graphics.Matrix
 import android.media.Image
 import android.util.Log
 import android.util.Size
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.mlkit.vision.common.InputImage
@@ -18,13 +19,16 @@ class FaceAnalyzer(
     lifecycle: Lifecycle,
     private val overlay: Overlay
 ) : ImageAnalysis.Analyzer {
+    private val _faceDetected: MutableLiveData<Int> = MutableLiveData(0)
+    val faceDetected: LiveData<Int>
+        get() = _faceDetected!!
 
     private val options = FaceDetectorOptions.Builder()
         .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
         .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
         .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
         .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
-        .setMinFaceSize(0.2F)
+        .setMinFaceSize(0.5F)
         .enableTracking()
         .build()
 
@@ -52,6 +56,9 @@ class FaceAnalyzer(
     private val successListener = OnSuccessListener<List<Face>> { faces ->
         Log.d(TAG, "Number of face detected: " + faces.size)
         overlay.setFaces(faces)
+        if (faces.size != _faceDetected.value) {
+            _faceDetected.value = faces.size
+        }
     }
 
     private val failureListener = OnFailureListener { e ->
